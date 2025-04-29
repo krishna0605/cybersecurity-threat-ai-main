@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Threat Detection</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            padding-top: 2rem;
+        }
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+        }
+        .spinner-border {
+            display: none;
+        }
+        .home-link {
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            background-color: #fd7e14;
+            color: white;
+            border-top-left-radius: 8px !important;
+            border-top-right-radius: 8px !important;
+        }
+        .threat-type {
+            font-weight: bold;
+        }
+        .threat-type-normal { color: #198754; }
+        .threat-type-dos { color: #dc3545; }
+        .threat-type-probe { color: #fd7e14; }
+        .threat-type-r2l { color: #6f42c1; }
+        .threat-type-u2r { color: #d63384; }
+        
+        .attack-details {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .confidence-bar {
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            background-color: #e9ecef;
+        }
+        
+        .confidence-indicator {
+            height: 100%;
+            border-radius: 4px;
+            background-color: #0d6efd;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+        
+        #featureTable {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="home-link">← Back to Home</a>
+        <h1 class="mb-4">Network Threat Detection</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Submit Network Data for Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p>
+                        This tool analyzes network traffic data to detect potential security threats
+                        including DoS attacks, probing, Remote-to-Local (R2L), and User-to-Root (U2R) attacks.
+                    </p>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-secondary">
+                                <h6 class="mb-0">Input Options</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="inputType" id="inputManual" checked>
+                                    <label class="form-check-label" for="inputManual">
+                                        Manual Input
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="inputType" id="inputFile">
+                                    <label class="form-check-label" for="inputFile">
+                                        Upload CSV File
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="inputType" id="inputSample">
+                                    <label class="form-check-label" for="inputSample">
+                                        Use Sample Data
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-secondary">
+                                <h6 class="mb-0">Analysis Options</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="optionDetailed" checked>
+                                    <label class="form-check-label" for="optionDetailed">
+                                        Show detailed analysis
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="optionFeatureImportance" checked>
+                                    <label class="form-check-label" for="optionFeatureImportance">
+                                        Show feature importance
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="manualInputForm">
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> For manual input, please specify the network attributes below.
+                        You can leave fields empty to use default values.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="duration" class="form-label">Duration (seconds)</label>
+                                <input type="number" class="form-control" id="duration" placeholder="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="protocol" class="form-label">Protocol Type</label>
+                                <select class="form-select" id="protocol">
+                                    <option value="0">TCP</option>
+                                    <option value="1">UDP</option>
+                                    <option value="2">ICMP</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="service" class="form-label">Service</label>
+                                <select class="form-select" id="service">
+                                    <option value="0">http</option>
+                                    <option value="1">ftp</option>
+                                    <option value="2">smtp</option>
+                                    <option value="3">ssh</option>
+                                    <option value="4">dns</option>
+                                    <option value="5">telnet</option>
+                                    <option value="6">other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="src_bytes" class="form-label">Source Bytes</label>
+                                <input type="number" class="form-control" id="src_bytes" placeholder="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="dst_bytes" class="form-label">Destination Bytes</label>
+                                <input type="number" class="form-control" id="dst_bytes" placeholder="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="flag" class="form-label">Flag</label>
+                                <select class="form-select" id="flag">
+                                    <option value="0">SF (normal)</option>
+                                    <option value="1">S0 (connection attempt)</option>
+                                    <option value="2">REJ (rejected)</option>
+                                    <option value="3">RSTO (reset)</option>
+                                    <option value="4">RSTR (reset reverse)</option>
+                                    <option value="5">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" id="manualSubmitBtn">
+                            <span class="spinner-border spinner-border-sm me-2" id="manualSpinner"></span>
+                            Analyze Network Data
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="fileInputForm" style="display: none;">
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> Upload a CSV file with network traffic data. The file should have the
+                        appropriate format with features like duration, protocol_type, service, etc.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">CSV File</label>
+                        <input class="form-control" type="file" id="csvFile" accept=".csv">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" id="fileSubmitBtn">
+                            <span class="spinner-border spinner-border-sm me-2" id="fileSpinner"></span>
+                            Analyze File Data
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="sampleInputForm" style="display: none;">
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> Use sample data to test the threat detection system.
+                        Choose a sample type below.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sampleType" class="form-label">Sample Type</label>
+                        <select class="form-select" id="sampleType">
+                            <option value="normal">Normal Traffic</option>
+                            <option value="dos">DoS Attack</option>
+                            <option value="probe">Probe Attack</option>
+                            <option value="r2l">R2L Attack</option>
+                            <option value="u2r">U2R Attack</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" id="sampleSubmitBtn">
+                            <span class="spinner-border spinner-border-sm me-2" id="sampleSpinner"></span>
+                            Analyze Sample Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="resultContainer" class="result-container">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Detection Results</h5>
+                    <span id="threatBadge" class="badge bg-secondary">Analyzing...</span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6>Classification Result</h6>
+                        <div class="alert alert-secondary" id="resultSummary">
+                            Analyzing network traffic data...
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Confidence Scores</h6>
+                        <div id="confidenceScores">
+                            <!-- Confidence scores will be displayed here -->
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4" id="detailedAnalysisContainer">
+                        <h6>Detailed Analysis</h6>
+                        <div id="detailedAnalysis" class="attack-details">
+                            <!-- Detailed analysis will be displayed here -->
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4" id="featureImportanceContainer">
+                        <h6>Feature Importance</h6>
+                        <div class="table-responsive" id="featureTable">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Feature</th>
+                                        <th>Importance</th>
+                                        <th>Value</th>
+                                        <th>Impact</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="featureTableBody">
+                                    <!-- Feature importance data will be displayed here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form elements
+            const inputManual = document.getElementById('inputManual');
+            const inputFile = document.getElementById('inputFile');
+            const inputSample = document.getElementById('inputSample');
+            const manualInputForm = document.getElementById('manualInputForm');
+            const fileInputForm = document.getElementById('fileInputForm');
+            const sampleInputForm = document.getElementById('sampleInputForm');
+            
+            // Button and spinner elements
+            const manualSubmitBtn = document.getElementById('manualSubmitBtn');
+            const fileSubmitBtn = document.getElementById('fileSubmitBtn');
+            const sampleSubmitBtn = document.getElementById('sampleSubmitBtn');
+            const manualSpinner = document.getElementById('manualSpinner');
+            const fileSpinner = document.getElementById('fileSpinner');
+            const sampleSpinner = document.getElementById('sampleSpinner');
+            
+            // Result elements
+            const resultContainer = document.getElementById('resultContainer');
+            
+            // Toggle between input forms
+            inputManual.addEventListener('change', function() {
+                if (this.checked) {
+                    manualInputForm.style.display = 'block';
+                    fileInputForm.style.display = 'none';
+                    sampleInputForm.style.display = 'none';
+                }
+            });
+            
+            inputFile.addEventListener('change', function() {
+                if (this.checked) {
+                    manualInputForm.style.display = 'none';
+                    fileInputForm.style.display = 'block';
+                    sampleInputForm.style.display = 'none';
+                }
+            });
+            
+            inputSample.addEventListener('change', function() {
+                if (this.checked) {
+                    manualInputForm.style.display = 'none';
+                    fileInputForm.style.display = 'none';
+                    sampleInputForm.style.display = 'block';
+                }
+            });
+            
+            // Handle manual form submission
+            manualSubmitBtn.addEventListener('click', async function() {
+                // Show spinner
+                manualSpinner.style.display = 'inline-block';
+                
+                // Collect input data
+                const data = {
+                    duration: parseFloat(document.getElementById('duration').value) || 0,
+                    protocol_type: parseInt(document.getElementById('protocol').value),
+                    service: parseInt(document.getElementById('service').value),
+                    flag: parseInt(document.getElementById('flag').value),
+                    src_bytes: parseInt(document.getElementById('src_bytes').value) || 0,
+                    dst_bytes: parseInt(document.getElementById('dst_bytes').value) || 0,
+                    land: 0,
+                    wrong_fragment: 0,
+                    urgent: 0,
+                    hot: 0,
+                    num_failed_logins: 0,
+                    logged_in: 0,
+                    num_compromised: 0,
+                    // Add additional fields with default values
+                    // These are mapped directly to model features
+                    col_0: parseFloat(document.getElementById('duration').value) || 0,
+                    col_1: parseInt(document.getElementById('protocol').value),
+                    col_2: parseInt(document.getElementById('service').value),
+                    col_3: parseInt(document.getElementById('flag').value),
+                    col_4: parseInt(document.getElementById('src_bytes').value) || 0,
+                    col_5: parseInt(document.getElementById('dst_bytes').value) || 0,
+                    // The rest as default values
+                    col_6: 0, col_7: 0, col_8: 0, col_9: 0,
+                    col_10: 0, col_11: 0, col_12: 0, col_13: 0, col_14: 0,
+                    col_15: 0, col_16: 0, col_17: 0, col_18: 0, col_19: 0,
+                    col_20: 0, col_21: 0, col_22: 0, col_23: 0, col_24: 0,
+                    col_25: 0, col_26: 0, col_27: 0, col_28: 0, col_29: 0,
+                    col_30: 0, col_31: 0, col_32: 0, col_33: 0, col_34: 0,
+                    col_35: 0, col_36: 0, col_37: 0, col_38: 0, col_39: 0,
+                    col_40: 0
+                };
+                
+                try {
+                    // Call the API
+                    const response = await fetch('/api/threat/detect', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('API request failed');
+                    }
+                    
+                    const result = await response.json();
+                    displayResults(result, data);
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                } finally {
+                    // Hide spinner
+                    manualSpinner.style.display = 'none';
+                }
+            });
+            
+            // Handle file form submission
+            fileSubmitBtn.addEventListener('click', async function() {
+                const fileInput = document.getElementById('csvFile');
+                if (!fileInput.files.length) {
+                    alert('Please select a CSV file to analyze');
+                    return;
+                }
+                
+                // Show spinner
+                fileSpinner.style.display = 'inline-block';
+                
+                // Parse CSV file
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    try {
+                        const csvData = e.target.result;
+                        // Very basic CSV parsing - this should be more robust in production
+                        const lines = csvData.split('\n');
+                        if (lines.length < 2) {
+                            throw new Error('CSV file must contain a header row and at least one data row');
+                        }
+                        
+                        // Parse the first data row (assuming second line is data)
+                        const dataRow = lines[1].split(',');
+                        
+                        // Create data object from CSV values
+                        const data = {};
+                        for (let i = 0; i < dataRow.length; i++) {
+                            data[`col_${i}`] = isNaN(parseFloat(dataRow[i])) ? 0 : parseFloat(dataRow[i]);
+                        }
+                        
+                        // Call the API
+                        const response = await fetch('/api/threat/detect', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('API request failed');
+                        }
+                        
+                        const result = await response.json();
+                        displayResults(result, data);
+                    } catch (error) {
+                        alert('Error: ' + error.message);
+                    } finally {
+                        // Hide spinner
+                        fileSpinner.style.display = 'none';
+                    }
+                };
+                
+                reader.onerror = function() {
+                    alert('Error reading the file');
+                    fileSpinner.style.display = 'none';
+                };
+                
+                reader.readAsText(file);
+            });
+            
+            // Handle sample form submission
+            sampleSubmitBtn.addEventListener('click', async function() {
+                // Show spinner
+                sampleSpinner.style.display = 'inline-block';
+                
+                const sampleType = document.getElementById('sampleType').value;
+                let sampleData;
+                
+                // Sample data based on attack type
+                switch(sampleType) {
+                    case 'normal':
+                        sampleData = {
+                            col_0: 0, col_1: 0, col_2: 0, col_3: 0, col_4: 45, col_5: 0,
+                            col_6: 0, col_7: 0, col_8: 0, col_9: 0, col_10: 0
+                        };
+                        break;
+                    case 'dos':
+                        sampleData = {
+                            col_0: 0, col_1: 0, col_2: 2, col_3: 0, col_4: 1032, col_5: 0,
+                            col_6: 0, col_7: 1, col_8: 0, col_9: 3, col_10: 1
+                        };
+                        break;
+                    case 'probe':
+                        sampleData = {
+                            col_0: 0, col_1: 2, col_2: 1, col_3: 0, col_4: 0, col_5: 0,
+                            col_6: 0, col_7: 0, col_8: 1, col_9: 15, col_10: 0
+                        };
+                        break;
+                    case 'r2l':
+                        sampleData = {
+                            col_0: 0, col_1: 0, col_2: 0, col_3: 0, col_4: 1337, col_5: 7331,
+                            col_6: 0, col_7: 0, col_8: 0, col_9: 0, col_10: 3
+                        };
+                        break;
+                    case 'u2r':
+                        sampleData = {
+                            col_0: 0, col_1: 0, col_2: 0, col_3: 0, col_4: 743, col_5: 1028,
+                            col_6: 0, col_7: 0, col_8: 0, col_9: 1, col_10: 1
+                        };
+                        break;
+                }
+                
+                // Fill remaining features
+                for (let i = 11; i <= 40; i++) {
+                    sampleData[`col_${i}`] = 0;
+                }
+                
+                try {
+                    // Call the API
+                    const response = await fetch('/api/threat/detect', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(sampleData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('API request failed');
+                    }
+                    
+                    const result = await response.json();
+                    displayResults(result, sampleData);
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                } finally {
+                    // Hide spinner
+                    sampleSpinner.style.display = 'none';
+                }
+            });
+            
+            // Function to display results
+            function displayResults(result, inputData) {
+                // Show result container
+                resultContainer.style.display = 'block';
+                
+                // Get prediction and confidence
+                const prediction = result.prediction ? result.prediction[0] : 'unknown';
+                const confidence = result.confidence ? result.confidence[0] : 0;
+                
+                // Update threat badge
+                const threatBadge = document.getElementById('threatBadge');
+                threatBadge.textContent = formatThreatType(prediction);
+                
+                // Set badge color based on threat type
+                threatBadge.className = 'badge';
+                switch(prediction) {
+                    case 'normal':
+                        threatBadge.classList.add('bg-success');
+                        break;
+                    case 'dos':
+                        threatBadge.classList.add('bg-danger');
+                        break;
+                    case 'probe':
+                        threatBadge.classList.add('bg-warning');
+                        break;
+                    case 'r2l':
+                        threatBadge.classList.add('bg-purple', 'text-white');
+                        break;
+                    case 'u2r':
+                        threatBadge.classList.add('bg-pink', 'text-white');
+                        break;
+                    default:
+                        threatBadge.classList.add('bg-secondary');
+                }
+                
+                // Update result summary
+                const resultSummary = document.getElementById('resultSummary');
+                
+                if (prediction === 'normal') {
+                    resultSummary.className = 'alert alert-success';
+                    resultSummary.innerHTML = `
+                        <strong>No threat detected!</strong> The network traffic appears to be normal 
+                        with a confidence of ${(confidence * 100).toFixed(2)}%.
+                    `;
+                } else {
+                    resultSummary.className = 'alert alert-danger';
+                    resultSummary.innerHTML = `
+                        <strong>Threat detected!</strong> The network traffic appears to be a 
+                        <span class="threat-type threat-type-${prediction}">${formatThreatType(prediction)}</span>
+                        attack with a confidence of ${(confidence * 100).toFixed(2)}%.
+                    `;
+                }
+                
+                // Update confidence scores
+                const confidenceScores = document.getElementById('confidenceScores');
+                // In a real implementation, you would show confidence for all classes
+                // Here we're just displaying the top class for simplicity
+                confidenceScores.innerHTML = `
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <div>${formatThreatType(prediction)}</div>
+                            <div>${(confidence * 100).toFixed(2)}%</div>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-indicator" style="width: ${confidence * 100}%"></div>
+                        </div>
+                    </div>
+                `;
+                
+                // Update detailed analysis if enabled
+                const detailedAnalysisContainer = document.getElementById('detailedAnalysisContainer');
+                if (document.getElementById('optionDetailed').checked) {
+                    detailedAnalysisContainer.style.display = 'block';
+                    
+                    const detailedAnalysis = document.getElementById('detailedAnalysis');
+                    detailedAnalysis.innerHTML = getThreatAnalysis(prediction);
+                } else {
+                    detailedAnalysisContainer.style.display = 'none';
+                }
+                
+                // Update feature importance if enabled
+                const featureImportanceContainer = document.getElementById('featureImportanceContainer');
+                if (document.getElementById('optionFeatureImportance').checked) {
+                    featureImportanceContainer.style.display = 'block';
+                    
+                    // For demonstration, we'll create a simple feature table
+                    // In a real application, this would come from the model's feature importance
+                    const featureTableBody = document.getElementById('featureTableBody');
+                    featureTableBody.innerHTML = '';
+                    
+                    // Sample feature importance - in real app this would come from the backend
+                    const featureImportance = [
+                        { name: 'src_bytes', importance: 0.18, value: inputData.col_4 || 0 },
+                        { name: 'dst_bytes', importance: 0.15, value: inputData.col_5 || 0 },
+                        { name: 'protocol_type', importance: 0.12, value: inputData.col_1 || 0 },
+                        { name: 'service', importance: 0.10, value: inputData.col_2 || 0 },
+                        { name: 'flag', importance: 0.09, value: inputData.col_3 || 0 },
+                        { name: 'duration', importance: 0.08, value: inputData.col_0 || 0 },
+                        { name: 'count', importance: 0.07, value: inputData.col_22 || 0 },
+                        { name: 'dst_host_count', importance: 0.06, value: inputData.col_31 || 0 },
+                        { name: 'logged_in', importance: 0.05, value: inputData.col_11 || 0 },
+                        { name: 'dst_host_srv_count', importance: 0.04, value: inputData.col_32 || 0 }
+                    ];
+                    
+                    featureImportance.forEach(feature => {
+                        const row = document.createElement('tr');
+                        
+                        // Determine impact
+                        let impact = 'Neutral';
+                        let impactClass = 'text-secondary';
+                        
+                        if (feature.importance > 0.1) {
+                            if (feature.value > 0) {
+                                impact = 'High Positive';
+                                impactClass = 'text-danger';
+                            } else {
+                                impact = 'High Negative';
+                                impactClass = 'text-success';
+                            }
+                        } else if (feature.importance > 0.05) {
+                            if (feature.value > 0) {
+                                impact = 'Moderate Positive';
+                                impactClass = 'text-warning';
+                            } else {
+                                impact = 'Moderate Negative';
+                                impactClass = 'text-info';
+                            }
+                        }
+                        
+                        row.innerHTML = `
+                            <td>${feature.name}</td>
+                            <td>${(feature.importance * 100).toFixed(2)}%</td>
+                            <td>${feature.value}</td>
+                            <td class="${impactClass}">${impact}</td>
+                        `;
+                        
+                        featureTableBody.appendChild(row);
+                    });
+                    
+                } else {
+                    featureImportanceContainer.style.display = 'none';
+                }
+                
+                // Scroll to results
+                resultContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Helper function to format threat type
+            function formatThreatType(type) {
+                switch(type) {
+                    case 'normal': return 'Normal Traffic';
+                    case 'dos': return 'DoS Attack';
+                    case 'probe': return 'Probe Attack';
+                    case 'r2l': return 'R2L Attack (Remote to Local)';
+                    case 'u2r': return 'U2R Attack (User to Root)';
+                    default: return 'Unknown';
+                }
+            }
+            
+            // Helper function to get threat analysis
+            function getThreatAnalysis(type) {
+                switch(type) {
+                    case 'normal':
+                        return `
+                            <p>The network traffic has been classified as normal. No suspicious patterns were detected.</p>
+                            <p>Normal traffic characteristics:</p>
+                            <ul>
+                                <li>Balanced source and destination bytes</li>
+                                <li>No failed login attempts</li>
+                                <li>No suspicious command executions</li>
+                                <li>Normal connection rates</li>
+                                <li>Typical protocol behavior</li>
+                            </ul>
+                        `;
+                    case 'dos':
+                        return `
+                            <p>The network traffic has been classified as a <strong>Denial of Service (DoS) attack</strong>.</p>
+                            <p>Characteristics of this attack:</p>
+                            <ul>
+                                <li>Unusually high number of connections</li>
+                                <li>Large volume of traffic to specific services</li>
+                                <li>SYN flood or similar patterns detected</li>
+                                <li>Abnormal packet fragmentation</li>
+                                <li>Resource consumption indicators present</li>
+                            </ul>
+                            <p>Recommended actions:</p>
+                            <ul>
+                                <li>Implement rate limiting</li>
+                                <li>Configure firewall rules to block attack sources</li>
+                                <li>Deploy DDoS protection services</li>
+                                <li>Investigate attack source(s)</li>
+                            </ul>
+                        `;
+                    case 'probe':
+                        return `
+                            <p>The network traffic has been classified as a <strong>Probe attack</strong>.</p>
+                            <p>Characteristics of this attack:</p>
+                            <ul>
+                                <li>Port scanning activity detected</li>
+                                <li>Systematic attempts to identify services</li>
+                                <li>Network or host enumeration patterns</li>
+                                <li>Vulnerability scanning signatures</li>
+                                <li>Low volume, widely distributed connection attempts</li>
+                            </ul>
+                            <p>Recommended actions:</p>
+                            <ul>
+                                <li>Limit exposed services</li>
+                                <li>Implement network segmentation</li>
+                                <li>Configure intrusion prevention systems</li>
+                                <li>Monitor for follow-up attack attempts</li>
+                            </ul>
+                        `;
+                    case 'r2l':
+                        return `
+                            <p>The network traffic has been classified as a <strong>Remote to Local (R2L) attack</strong>.</p>
+                            <p>Characteristics of this attack:</p>
+                            <ul>
+                                <li>Unauthorized access attempts from remote systems</li>
+                                <li>Password guessing or brute force patterns</li>
+                                <li>Exploitation of client-side vulnerabilities</li>
+                                <li>Social engineering indicators</li>
+                                <li>Data exfiltration signatures</li>
+                            </ul>
+                            <p>Recommended actions:</p>
+                            <ul>
+                                <li>Strengthen authentication systems</li>
+                                <li>Implement account lockout policies</li>
+                                <li>Update and patch vulnerable software</li>
+                                <li>Perform security awareness training</li>
+                                <li>Monitor for compromised credentials</li>
+                            </ul>
+                        `;
+                    case 'u2r':
+                        return `
+                            <p>The network traffic has been classified as a <strong>User to Root (U2R) attack</strong>.</p>
+                            <p>Characteristics of this attack:</p>
+                            <ul>
+                                <li>Privilege escalation attempts detected</li>
+                                <li>Buffer overflow exploitation signatures</li>
+                                <li>Suspicious command execution</li>
+                                <li>Access to sensitive system resources</li>
+                                <li>Modification of system configurations</li>
+                            </ul>
+                            <p>Recommended actions:</p>
+                            <ul>
+                                <li>Implement least privilege principle</li>
+                                <li>Update and patch vulnerable software</li>
+                                <li>Deploy application whitelisting</li>
+                                <li>Enable comprehensive logging and monitoring</li>
+                                <li>Perform forensic analysis of affected systems</li>
+                            </ul>
+                        `;
+                    default:
+                        return `
+                            <p>The network traffic has been classified as an unknown threat pattern.</p>
+                            <p>Recommended actions:</p>
+                            <ul>
+                                <li>Perform manual review of the traffic patterns</li>
+                                <li>Monitor the affected systems for unusual behavior</li>
+                                <li>Update detection signatures and rules</li>
+                            </ul>
+                        `;
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

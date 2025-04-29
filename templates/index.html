@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Threat Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .normal {
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+        }
+        .threat {
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+        }
+        .hidden {
+            display: none;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        @media (max-width: 600px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Cybersecurity Threat Detection</h1>
+        <p>Use AI to analyze network traffic and detect potential threats</p>
+    </div>
+    
+    <div class="container">
+        <h2>Submit Network Traffic Data</h2>
+        <p>Enter the network connection features below to analyze for security threats.</p>
+        
+        <form id="detection-form">
+            <div class="feature-grid">
+                <div>
+                    <label for="duration">Duration (seconds):</label>
+                    <input type="number" id="duration" name="duration" value="0" min="0">
+                </div>
+                
+                <div>
+                    <label for="protocol_type">Protocol Type:</label>
+                    <select id="protocol_type" name="protocol_type">
+                        <option value="0">TCP</option>
+                        <option value="1" selected>UDP</option>
+                        <option value="2">ICMP</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="service">Service Type:</label>
+                    <input type="number" id="service" name="service" value="2" min="0" max="69">
+                </div>
+                
+                <div>
+                    <label for="flag">Connection Flag:</label>
+                    <select id="flag" name="flag">
+                        <option value="0" selected>Normal</option>
+                        <option value="1">Error</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="src_bytes">Source Bytes:</label>
+                    <input type="number" id="src_bytes" name="src_bytes" value="491" min="0">
+                </div>
+                
+                <div>
+                    <label for="dst_bytes">Destination Bytes:</label>
+                    <input type="number" id="dst_bytes" name="dst_bytes" value="0" min="0">
+                </div>
+            </div>
+            
+            <button type="submit">Analyze Traffic</button>
+        </form>
+        
+        <div id="result" class="result hidden"></div>
+    </div>
+    
+    <script>
+        document.getElementById('detection-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const formData = {
+                col_0: parseInt(document.getElementById('duration').value) || 0,
+                col_1: parseInt(document.getElementById('protocol_type').value) || 0,
+                col_2: parseInt(document.getElementById('service').value) || 0,
+                col_3: parseInt(document.getElementById('flag').value) || 0,
+                col_4: parseInt(document.getElementById('src_bytes').value) || 0,
+                col_5: parseInt(document.getElementById('dst_bytes').value) || 0,
+                col_6: 0, // land
+                col_7: 0, // wrong_fragment
+                col_8: 0  // urgent
+            };
+            
+            // Add remaining features with default values
+            for (let i = 9; i <= 40; i++) {
+                formData[`col_${i}`] = 0;
+            }
+            
+            // Send data to API
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Display result
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.classList.remove('hidden', 'normal', 'threat');
+                    
+                    const prediction = result.prediction[0];
+                    const confidence = result.confidence[0];
+                    
+                    // Map numerical prediction to string if needed
+                    let predictionText = prediction;
+                    if (typeof prediction === 'number') {
+                        const attackTypes = {
+                            0: 'normal',
+                            1: 'dos (Denial of Service)',
+                            2: 'probe (Surveillance/Scanning)',
+                            3: 'r2l (Remote to Local Attack)',
+                            4: 'u2r (User to Root Attack)'
+                        };
+                        predictionText = attackTypes[prediction] || prediction;
+                    }
+                    
+                    // Set result class based on prediction
+                    resultDiv.classList.add(predictionText === 'normal' ? 'normal' : 'threat');
+                    
+                    resultDiv.innerHTML = `
+                        <h3>Traffic Analysis Result</h3>
+                        <p><strong>Prediction:</strong> ${predictionText}</p>
+                        <p><strong>Confidence:</strong> ${(confidence * 100).toFixed(2)}%</p>
+                    `;
+                } else {
+                    // Display error
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.classList.remove('hidden', 'normal');
+                    resultDiv.classList.add('threat');
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${result.error || 'Unknown error occurred'}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const resultDiv = document.getElementById('result');
+                resultDiv.classList.remove('hidden', 'normal');
+                resultDiv.classList.add('threat');
+                resultDiv.innerHTML = `<h3>Error</h3><p>Failed to communicate with the API server</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
+    

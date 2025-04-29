@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 900px;
+            padding-top: 2rem;
+            padding-bottom: 4rem;
+        }
+        .home-link {
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+        .endpoint-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            padding: 1rem;
+        }
+        .endpoint-card h5 {
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+        }
+        .method-badge {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            margin-right: 0.8rem;
+            min-width: 60px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .get-badge { background-color: #0d6efd; color: white; }
+        .post-badge { background-color: #198754; color: white; }
+        
+        .param-table {
+            margin-top: 1rem;
+        }
+        
+        .param-required {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .param-optional {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background-color: #212529;
+            color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin-top: 0.5rem;
+        }
+        
+        .response-example {
+            margin-top: 1rem;
+        }
+        
+        .key {
+            color: #0dcaf0;
+        }
+        
+        .string {
+            color: #20c997;
+        }
+        
+        .number {
+            color: #ffc107;
+        }
+        
+        .boolean {
+            color: #fd7e14;
+        }
+        
+        .null {
+            color: #dc3545;
+        }
+        
+        .section-title {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 0.5rem;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #495057;
+            padding: 0.5rem 1rem;
+        }
+        
+        .nav-tabs .nav-link.active {
+            border-bottom: 2px solid #0d6efd;
+            font-weight: 600;
+            color: #0d6efd;
+        }
+        
+        .tab-content {
+            padding: 1.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="home-link">← Back to Home</a>
+        <h1 class="mb-4">API Documentation</h1>
+        
+        <div class="alert alert-info mb-4">
+            <h5 class="alert-heading">About the API</h5>
+            <p>
+                This documentation provides details on available endpoints for the Cybersecurity Threat AI API. 
+                The API offers functionality for malware detection, steganography analysis, and network threat detection.
+            </p>
+            <hr>
+            <p class="mb-0">
+                Base URL: <code>http://localhost:5000/api</code>
+            </p>
+        </div>
+        
+        <ul class="nav nav-tabs" id="apiTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="malware-tab" data-bs-toggle="tab" data-bs-target="#malware" type="button" role="tab" aria-controls="malware" aria-selected="true">Malware Detection</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="steg-tab" data-bs-toggle="tab" data-bs-target="#steg" type="button" role="tab" aria-controls="steg" aria-selected="false">Steganography</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="threat-tab" data-bs-toggle="tab" data-bs-target="#threat" type="button" role="tab" aria-controls="threat" aria-selected="false">Threat Detection</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="status-tab" data-bs-toggle="tab" data-bs-target="#status" type="button" role="tab" aria-controls="status" aria-selected="false">Status</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="apiTabContent">
+            <!-- Malware Detection API -->
+            <div class="tab-pane fade show active" id="malware" role="tabpanel" aria-labelledby="malware-tab">
+                <div class="card endpoint-card">
+                    <div class="card-header">
+                        <h5>
+                            <span class="method-badge post-badge">POST</span>
+                            <span>/api/analyze</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Analyzes a file for potential malware.</p>
+                        
+                        <h6>Request</h6>
+                        <p>Content-Type: <code>multipart/form-data</code></p>
+                        
+                        <table class="table table-sm param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-required">file</span></td>
+                                    <td>File</td>
+                                    <td>The file to be analyzed</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-optional">deep_scan</span></td>
+                                    <td>Boolean</td>
+                                    <td>Whether to perform a deep scan (default: false)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h6 class="mt-3">Response</h6>
+                        <div class="response-example">
+                            <div class="code-block">
+<pre>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"filename"</span>: <span class="string">"test_sample.exe"</span>,
+  <span class="key">"detection"</span>: {
+    <span class="key">"is_malware"</span>: <span class="boolean">true</span>,
+    <span class="key">"confidence"</span>: <span class="number">0.94</span>,
+    <span class="key">"malware_type"</span>: <span class="string">"trojan"</span>
+  },
+  <span class="key">"signatures"</span>: [
+    <span class="string">"SuspiciousPEHeader"</span>,
+    <span class="string">"BlacklistedStrings"</span>
+  ],
+  <span class="key">"metadata"</span>: {
+    <span class="key">"file_size"</span>: <span class="number">45632</span>,
+    <span class="key">"md5"</span>: <span class="string">"a1b2c3d4e5f6g7h8i9j0"</span>,
+    <span class="key">"sha256"</span>: <span class="string">"1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t"</span>
+  }
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card endpoint-card">
+                    <div class="card-header">
+                        <h5>
+                            <span class="method-badge post-badge">POST</span>
+                            <span>/api/scan_file</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Scans a file for malware using YARA rules.</p>
+                        
+                        <h6>Request</h6>
+                        <p>Content-Type: <code>multipart/form-data</code></p>
+                        
+                        <table class="table table-sm param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-required">file</span></td>
+                                    <td>File</td>
+                                    <td>The file to be scanned</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h6 class="mt-3">Response</h6>
+                        <div class="response-example">
+                            <div class="code-block">
+<pre>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"filename"</span>: <span class="string">"suspicious_file.exe"</span>,
+  <span class="key">"matches"</span>: [
+    {
+      <span class="key">"rule"</span>: <span class="string">"BootkitMalware"</span>,
+      <span class="key">"description"</span>: <span class="string">"Detects potential bootkit malware"</span>,
+      <span class="key">"strings"</span>: [
+        <span class="string">"MBR_Hook"</span>,
+        <span class="string">"BootSector"</span>
+      ]
+    }
+  ]
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card endpoint-card">
+                    <div class="card-header">
+                        <h5>
+                            <span class="method-badge post-badge">POST</span>
+                            <span>/api/scan_memory</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Scans process memory for malware signatures.</p>
+                        
+                        <h6>Request</h6>
+                        <p>Content-Type: <code>application/json</code></p>
+                        
+                        <table class="table table-sm param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-required">pid</span></td>
+                                    <td>Integer</td>
+                                    <td>Process ID to scan</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-optional">scan_all</span></td>
+                                    <td>Boolean</td>
+                                    <td>Whether to scan all processes (ignores pid if true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="code-block">
+<pre>{
+  <span class="key">"pid"</span>: <span class="number">1234</span>,
+  <span class="key">"scan_all"</span>: <span class="boolean">false</span>
+}</pre>
+                        </div>
+                        
+                        <h6 class="mt-3">Response</h6>
+                        <div class="response-example">
+                            <div class="code-block">
+<pre>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"process_info"</span>: {
+    <span class="key">"pid"</span>: <span class="number">1234</span>,
+    <span class="key">"name"</span>: <span class="string">"suspicious_process.exe"</span>
+  },
+  <span class="key">"matches"</span>: [
+    {
+      <span class="key">"rule"</span>: <span class="string">"RootkitMemoryPattern"</span>,
+      <span class="key">"addresses"</span>: [<span class="string">"0x1a2b3c4d"</span>, <span class="string">"0x5e6f7g8h"</span>],
+      <span class="key">"severity"</span>: <span class="string">"high"</span>
+    }
+  ]
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card endpoint-card">
+                    <div class="card-header">
+                        <h5>
+                            <span class="method-badge post-badge">POST</span>
+                            <span>/api/yara/add</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Adds a new YARA rule to the detection system.</p>
+                        
+                        <h6>Request</h6>
+                        <p>Content-Type: <code>application/json</code></p>
+                        
+                        <table class="table table-sm param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-required">rule_name</span></td>
+                                    <td>String</td>
+                                    <td>Name of the YARA rule</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-required">rule_content</span></td>
+                                    <td>String</td>
+                                    <td>Content of the YARA rule</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-optional">description</span></td>
+                                    <td>String</td>
+                                    <td>Description of what the rule detects</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="code-block">
+<pre>{
+  <span class="key">"rule_name"</span>: <span class="string">"CustomMalwareRule"</span>,
+  <span class="key">"rule_content"</span>: <span class="string">"rule CustomMalwareRule { ... }"</span>,
+  <span class="key">"description"</span>: <span class="string">"Detects custom malware pattern"</span>
+}</pre>
+                        </div>
+                        
+                        <h6 class="mt-3">Response</h6>
+                        <div class="response-example">
+                            <div class="code-block">
+<pre>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"rule_name"</span>: <span class="string">"CustomMalwareRule"</span>,
+  <span class="key">"file_path"</span>: <span class="string">"/path/to/rules/custom_rule.yar"</span>
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Steganography API -->
+            <div class="tab-pane fade" id="steg" role="tabpanel" aria-labelledby="steg-tab">
+                <div class="card endpoint-card">
+                    <div class="card-header">
+                        <h5>
+                            <span class="method-badge post-badge">POST</span>
+                            <span>/api/steg/analyze</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Analyzes a file for potential hidden content using steganography.</p>
+                        
+                        <h6>Request</h6>
+                        <p>Content-Type: <code>multipart/form-data</code></p>
+                        
+                        <table class="table table-sm param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-required">file</span></td>
+                                    <td>File</td>
+                                    <td>The file to be analyzed</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-optional">detect_text</span></td>
+                                    <td>Boolean</td>
+                                    <td>Whether to detect hidden text (default: true)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-optional">detect_images</span></td>
+                                    <td>Boolean</td>
+                                    <td>Whether to detect hidden images (default: true)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-optional">statistical_analysis</span></td>
+                                    <td>Boolean</td>
+                                    <td>Whether to perform statistical analysis (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h6 class="mt-3">Response</h6>
+                        <div class="response-example">
+                            <div class="code-block">
+<pre>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"filename"</span>: <span class="string">"suspicious_image.png"</span>,
+  <span class="key">"file_info"</span>: {
+    <span class="key">"file_size"</span>: <span class="number">2458734</span>,
+    <span class="key">"mime_type"</span>: <span class="string">"image/png"</span>,
+    <span class="key">"dimensions"</span>: {
+      <span class="key">"width"</span>: <span class="number">1920</span>,
+      <span class="key">"height"</span>: <span class="number">1080</span>
+    }
+  },
+  <span class="key">"analysis"</span>: {
+    <span class="key">"steg_detected"</span>: <span class="boolean">true</span>,
+    <span class="key">"confidence"</span>: <span class="number">0.87</span>,
+    <span class="key">"potential_content_type"</span>: <span class="string">"text"</span>
+  },
+  <span class="key">"statistical_analysis"</span>: {
+    <span class="key">"bit_anomalies"</span>: <span class="boolean">true</span>,
+    <span class="key">"entropy"</span>: <span class="number">7.85</span>,
+    <span class="key">"lsb_randomness"</span>: <span class="string">"suspicious"</span>
+  },
+  <span class="key">"extracted_text"</span>: <span class="string">"Hidden message found..."</span>
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Threat Detection API -->
+            <div class="tab-pane fade" id="threat" role="tabpanel" aria-labelledby="threat-tab">
+                <div class="card endpoint-card">
+                    <div class="card-header">
+                        <h5>
+                            <span class="method-badge post-badge">POST</span>
+                            <span>/api/threat/detect</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Analyzes network traffic data to detect potential security threats.</p>
+                        
+                        <h6>Request</h6>
+                        <p>Content-Type: <code>application/json</code></p>
+                        
+                        <p>The request body should contain network traffic features as described below. For a complete list of supported features, refer to the KDD99 or NSL-KDD dataset documentation.</p>
+                        
+                        <div class="code-block">
+<pre>{
+  <span class="key">"duration"</span>: <span class="number">0</span>,
+  <span class="key">"protocol_type"</span>: <span class="number">0</span>,
+  <span class="key">"service"</span>: <span class="number">1</span>,
+  <span class="key">"flag"</span>: <span class="number">10</span>,
+  <span class="key">"src_bytes"</span>: <span class="number">491</span>,
+  <span class="key">"dst_bytes"</span>: <span class="number">0</span>,
+  <span class="key">"land"</span>: <span class="number">0</span>,
+  <span class="key">"wrong_fragment"</span>: <span class="number">0</span>,
+  <span class="key">"urgent"</span>: <span class="number">0</span>,
+  <span class="key">"col_0"</span>: <span class="number">0</span>,
+  <span class="key">"col_1"</span>: <span class="number">0</span>,
+  <span class="key">"col_2"</span>: <span class="number">1</span>,
+  <span class="key">"col_3"</span>: <span class="number">10</span>,
+  <span class="key">"col_4"</span>: <span class="number">491</span>,
+  <span class="key">"col_5"</span>: <span class="number">0</span>
+  <span class="comment">// Additional network traffic features...</span>
+}</pre>
+                        </div>
+                        
+                        <h6 class="mt-3">Response</h6>
+                        <div class="response-example">
+                            <div class="code-block">
+<pre>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"prediction"</span>: [<span class="string">"dos"</span>],
+  <span class="key">"confidence"</span>: [<span class="number">0.98</span>],
+  <span class="key">"scores"</span>: {
+    <span class="key">"normal"</span>: <span class="number">0.01</span>,
+    <span class="key">"dos"</span>: <span class="number">0.98</span>,
+    <span class="key">"probe"</span>: <span class="number">0.01</span>,
+    <span class="key">"r2l"</span>: <span class="number">0.00</span>,
+    <span class="key">"u2r"</span>: <span class="number">0.00</span>
+  },
+  <span class="key">"feature_importance"</span>: [
+    {
+      <span class="key">"feature"</span>: <span class="string">"src_bytes"</span>,
+      <span class="key">"importance"</span>: <span class="number">0.32</span>
+    },
+    {
+      <span class="key">"feature"</span>: <span class="string">"count"</span>,
+      <span class="key">"importance"</span>: <span class="number">0.28</span>
+    }
+  ]
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status API -->
+            <div class="tab-pane fade" id="status" role="tabpanel" aria-labelledby="status-tab">
+                <div class="card endpoint-card">
+                    <div class="card-header">
+                        <h5>
+                            <span class="method-badge get-badge">GET</span>
+                            <span>/api/status</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Checks the status of the API services.</p>
+                        
+                        <h6>Response</h6>
+                        <div class="response-example">
+                            <div class="code-block">
+<pre>{
+  <span class="key">"status"</span>: <span class="string">"operational"</span>,
+  <span class="key">"version"</span>: <span class="string">"1.0.0"</span>,
+  <span class="key">"services"</span>: {
+    <span class="key">"malware_detector"</span>: <span class="string">"operational"</span>,
+    <span class="key">"steg_analyzer"</span>: <span class="string">"operational"</span>,
+    <span class="key">"threat_detector"</span>: <span class="string">"operational"</span>
+  },
+  <span class="key">"uptime"</span>: <span class="number">3624</span>,
+  <span class="key">"yara_rules_count"</span>: <span class="number">15</span>
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="section-title">Error Handling</h2>
+        <div class="card">
+            <div class="card-body">
+                <p>All API endpoints use standard HTTP status codes to indicate success or failure:</p>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Status Code</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>200 OK</td>
+                            <td>Request succeeded</td>
+                        </tr>
+                        <tr>
+                            <td>400 Bad Request</td>
+                            <td>Invalid parameters or request format</td>
+                        </tr>
+                        <tr>
+                            <td>404 Not Found</td>
+                            <td>Endpoint not found</td>
+                        </tr>
+                        <tr>
+                            <td>415 Unsupported Media Type</td>
+                            <td>File type not supported for analysis</td>
+                        </tr>
+                        <tr>
+                            <td>500 Internal Server Error</td>
+                            <td>An error occurred on the server</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h6 class="mt-4">Error Response Format</h6>
+                <div class="response-example">
+                    <div class="code-block">
+<pre>{
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"error"</span>: <span class="string">"Invalid file format"</span>,
+  <span class="key">"code"</span>: <span class="string">"INVALID_FORMAT"</span>,
+  <span class="key">"detail"</span>: <span class="string">"The uploaded file is not a supported format. Supported formats: EXE, DLL, PDF, DOC, DOCX, XLS, XLSX"</span>
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const triggerTabList = document.querySelectorAll('#apiTabs button');
+            triggerTabList.forEach(triggerEl => {
+                const tabTrigger = new bootstrap.Tab(triggerEl);
+                
+                triggerEl.addEventListener('click', event => {
+                    event.preventDefault();
+                    tabTrigger.show();
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

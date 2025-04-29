@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steganography Analysis</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            padding-top: 2rem;
+        }
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+        }
+        .spinner-border {
+            display: none;
+        }
+        .home-link {
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            background-color: #6f42c1;
+            color: white;
+            border-top-left-radius: 8px !important;
+            border-top-right-radius: 8px !important;
+        }
+        .steg-detected {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .steg-not-detected {
+            background-color: #198754;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .detection-details {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 1rem auto;
+            display: block;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="home-link">← Back to Home</a>
+        <h1 class="mb-4">Steganography Analysis</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Upload File for Steganography Analysis</h5>
+            </div>
+            <div class="card-body">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Select image or file to analyze</label>
+                        <input class="form-control" type="file" id="fileInput" required>
+                        <div class="form-text">
+                            Supported formats: JPG, PNG, BMP, GIF, PDF, DOCX, and more.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Analysis Options</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="optionDetectText" checked>
+                            <label class="form-check-label" for="optionDetectText">
+                                Detect hidden text
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="optionDetectImages" checked>
+                            <label class="form-check-label" for="optionDetectImages">
+                                Detect hidden images
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="optionStatisticalAnalysis" checked>
+                            <label class="form-check-label" for="optionStatisticalAnalysis">
+                                Perform statistical analysis
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="spinner-border spinner-border-sm me-2" id="scanSpinner"></span>
+                        Analyze File
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="resultContainer" class="result-container">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Analysis Results</h5>
+                    <span id="resultStatus" class="badge steg-not-detected">No Hidden Data Detected</span>
+                </div>
+                <div class="card-body">
+                    <div id="imagePreviewContainer" style="display: none;">
+                        <h6>File Preview</h6>
+                        <img id="imagePreview" class="image-preview" alt="Preview">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>File Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Filename</th>
+                                <td id="fileName"></td>
+                            </tr>
+                            <tr>
+                                <th>File Type</th>
+                                <td id="fileType"></td>
+                            </tr>
+                            <tr>
+                                <th>File Size</th>
+                                <td id="fileSize"></td>
+                            </tr>
+                            <tr>
+                                <th>Dimensions</th>
+                                <td id="fileDimensions"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Detection Results</h6>
+                        <div id="detectionSummary" class="alert alert-info">
+                            Analyzing file for hidden content...
+                        </div>
+                        
+                        <div id="detectionDetails" class="detection-details">
+                            <h6>Analysis Details</h6>
+                            <div id="analysisResults">
+                                <!-- Results will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Statistical Analysis</h6>
+                        <div id="statisticalAnalysis">
+                            <!-- Statistical analysis results will be displayed here -->
+                        </div>
+                    </div>
+                    
+                    <div id="extractedContent" style="display: none;">
+                        <h6>Extracted Content</h6>
+                        <div class="alert alert-warning">
+                            <strong>Warning:</strong> Extracted content might be malicious. Exercise caution.
+                        </div>
+                        <div id="extractedData" class="p-3 bg-light">
+                            <!-- Extracted content will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadForm = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            const resultContainer = document.getElementById('resultContainer');
+            const spinner = document.getElementById('scanSpinner');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            
+            // Handle file upload form submission
+            uploadForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Please select a file to analyze');
+                    return;
+                }
+                
+                // Show loading spinner
+                spinner.style.display = 'inline-block';
+                
+                // Hide previous results
+                resultContainer.style.display = 'none';
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('detect_text', document.getElementById('optionDetectText').checked);
+                formData.append('detect_images', document.getElementById('optionDetectImages').checked);
+                formData.append('statistical_analysis', document.getElementById('optionStatisticalAnalysis').checked);
+                
+                try {
+                    // Send request to the API
+                    const response = await fetch('/api/steg/analyze', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        displayResults(result, file);
+                    } else {
+                        alert('Error: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                } finally {
+                    // Hide spinner
+                    spinner.style.display = 'none';
+                }
+            });
+            
+            // Display the analysis results
+            function displayResults(result, file) {
+                // Show result container
+                resultContainer.style.display = 'block';
+                
+                // Update file information
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileType').textContent = file.type || 'Unknown';
+                document.getElementById('fileSize').textContent = formatSize(file.size);
+                
+                // Show image preview if it's an image
+                if (file.type.startsWith('image/')) {
+                    const fileReader = new FileReader();
+                    fileReader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreviewContainer.style.display = 'block';
+                        
+                        // Create an image object to get dimensions
+                        const img = new Image();
+                        img.onload = function() {
+                            document.getElementById('fileDimensions').textContent = 
+                                `${img.width} × ${img.height} pixels`;
+                        };
+                        img.src = e.target.result;
+                    };
+                    fileReader.readAsDataURL(file);
+                } else {
+                    imagePreviewContainer.style.display = 'none';
+                    document.getElementById('fileDimensions').textContent = 'N/A';
+                }
+                
+                // Update detection status
+                const resultStatus = document.getElementById('resultStatus');
+                if (result.hidden_data_detected) {
+                    resultStatus.textContent = 'Hidden Data Detected';
+                    resultStatus.className = 'badge steg-detected';
+                } else {
+                    resultStatus.textContent = 'No Hidden Data Detected';
+                    resultStatus.className = 'badge steg-not-detected';
+                }
+                
+                // Update detection summary
+                const detectionSummary = document.getElementById('detectionSummary');
+                if (result.hidden_data_detected) {
+                    detectionSummary.className = 'alert alert-danger';
+                    detectionSummary.innerHTML = `
+                        <strong>Hidden data detected!</strong> The analysis indicates this file 
+                        contains hidden information using steganographic techniques.
+                    `;
+                } else {
+                    detectionSummary.className = 'alert alert-success';
+                    detectionSummary.innerHTML = `
+                        <strong>No hidden data detected.</strong> The analysis did not find any 
+                        indicators of steganographically hidden content.
+                    `;
+                }
+                
+                // Update analysis results
+                const analysisResults = document.getElementById('analysisResults');
+                analysisResults.innerHTML = '';
+                
+                if (result.detection_methods && result.detection_methods.length > 0) {
+                    const methodsList = document.createElement('ul');
+                    methodsList.className = 'list-group';
+                    
+                    result.detection_methods.forEach(method => {
+                        const methodItem = document.createElement('li');
+                        methodItem.className = 'list-group-item';
+                        
+                        if (method.detected) {
+                            methodItem.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${method.name}</strong>
+                                        <div>${method.description}</div>
+                                    </div>
+                                    <span class="badge bg-danger">Detected</span>
+                                </div>
+                                <div class="mt-2 small text-muted">${method.details || ''}</div>
+                            `;
+                        } else {
+                            methodItem.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${method.name}</strong>
+                                        <div>${method.description}</div>
+                                    </div>
+                                    <span class="badge bg-success">Clear</span>
+                                </div>
+                            `;
+                        }
+                        
+                        methodsList.appendChild(methodItem);
+                    });
+                    
+                    analysisResults.appendChild(methodsList);
+                } else {
+                    analysisResults.innerHTML = '<div class="alert alert-info">No specific detection methods were applied.</div>';
+                }
+                
+                // Update statistical analysis
+                const statisticalAnalysis = document.getElementById('statisticalAnalysis');
+                
+                if (result.statistical_analysis) {
+                    const stats = result.statistical_analysis;
+                    statisticalAnalysis.innerHTML = `
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Entropy</th>
+                                <td>${stats.entropy.toFixed(4)}</td>
+                                <td>${getEntropyDescription(stats.entropy)}</td>
+                            </tr>
+                            <tr>
+                                <th>Chi-Square Test</th>
+                                <td>${stats.chi_square_p_value.toFixed(4)}</td>
+                                <td>${getChiSquareDescription(stats.chi_square_p_value)}</td>
+                            </tr>
+                            <tr>
+                                <th>LSB Analysis</th>
+                                <td>${stats.lsb_ratio.toFixed(4)}</td>
+                                <td>${getLsbDescription(stats.lsb_ratio)}</td>
+                            </tr>
+                        </table>
+                    `;
+                } else {
+                    statisticalAnalysis.innerHTML = '<div class="alert alert-secondary">Statistical analysis was not performed or is not applicable to this file type.</div>';
+                }
+                
+                // Show extracted content if available
+                const extractedContent = document.getElementById('extractedContent');
+                const extractedData = document.getElementById('extractedData');
+                
+                if (result.extracted_data) {
+                    extractedContent.style.display = 'block';
+                    
+                    if (typeof result.extracted_data === 'string') {
+                        extractedData.innerHTML = `<pre>${escapeHtml(result.extracted_data)}</pre>`;
+                    } else {
+                        extractedData.innerHTML = `<pre>${escapeHtml(JSON.stringify(result.extracted_data, null, 2))}</pre>`;
+                    }
+                } else {
+                    extractedContent.style.display = 'none';
+                }
+                
+                // Scroll to results
+                resultContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Helper functions
+            function formatSize(bytes) {
+                if (!bytes) return 'Unknown';
+                
+                const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                let size = bytes;
+                let unitIndex = 0;
+                
+                while (size >= 1024 && unitIndex < units.length - 1) {
+                    size /= 1024;
+                    unitIndex++;
+                }
+                
+                return size.toFixed(2) + ' ' + units[unitIndex];
+            }
+            
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+            
+            function getEntropyDescription(entropy) {
+                if (entropy > 7.7) return 'Very high entropy (potential encryption or compression)';
+                if (entropy > 7.2) return 'High entropy (possible hidden data)';
+                if (entropy > 6.5) return 'Moderate entropy (within normal range)';
+                return 'Low entropy (likely normal content)';
+            }
+            
+            function getChiSquareDescription(pValue) {
+                if (pValue < 0.01) return 'Statistically significant deviation (likely modified)';
+                if (pValue < 0.05) return 'Possible deviation from normal distribution';
+                return 'Normal distribution (no statistical anomalies)';
+            }
+            
+            function getLsbDescription(ratio) {
+                if (ratio > 0.48) return 'LSB distribution highly suspicious';
+                if (ratio > 0.45) return 'LSB distribution slightly abnormal';
+                return 'LSB distribution appears normal';
+            }
+        });
+    </script>
+</body>
+</html> 
