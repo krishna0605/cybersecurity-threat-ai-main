@@ -11,5 +11,8 @@
       "src": "/(.*)",
       "dest": "src/app.py"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  }
 } 
