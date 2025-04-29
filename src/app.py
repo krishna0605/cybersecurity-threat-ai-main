@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory
 import os
 import sys
+import traceback
 
 # Initialize Flask app with templates directory
 app = Flask(__name__, template_folder='templates')
@@ -9,6 +10,10 @@ app = Flask(__name__, template_folder='templates')
 os.makedirs('temp_uploads', exist_ok=True)
 os.makedirs('src/yara_rules', exist_ok=True)
 
+# Flag to track if full functionality is available
+HAS_DEPENDENCIES = False
+ERROR_MESSAGE = ""
+
 # Try to import dependencies, but handle missing ones gracefully
 try:
     from malware_detection import malware_detector
@@ -16,9 +21,31 @@ try:
     # Import API routes and configure them on our app
     configure_routes(app)
     HAS_DEPENDENCIES = True
-except ImportError as e:
+except Exception as e:
+    ERROR_MESSAGE = str(e)
     print(f"Warning: Some dependencies are missing: {e}")
-    HAS_DEPENDENCIES = False
+    traceback.print_exc()
+    
+    # Define placeholder API routes that return "not available" messages
+    @app.route('/api/analyze', methods=['POST'])
+    @app.route('/api/scan_file', methods=['POST'])
+    @app.route('/api/scan_memory', methods=['POST'])
+    @app.route('/api/yara/add', methods=['POST'])
+    @app.route('/api/steg/analyze', methods=['POST'])
+    @app.route('/api/threat/detect', methods=['POST'])
+    def api_not_available():
+        return jsonify({
+            "error": "This functionality is not available in the demo deployment",
+            "message": "The full functionality requires additional dependencies that aren't supported in this deployment environment."
+        }), 503
+    
+    @app.route('/api/status', methods=['GET'])
+    def get_status():
+        return jsonify({
+            'status': 'limited',
+            'version': '1.0.0',
+            'message': 'Running in demo mode with limited functionality'
+        })
 
 @app.route('/')
 def index():
@@ -51,10 +78,31 @@ def health_check():
     """Health check endpoint for Vercel deployment verification"""
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     
+    deps = []
+    try:
+        import flask
+        deps.append(f"flask=={flask.__version__}")
+    except:
+        pass
+    
+    try:
+        import numpy
+        deps.append(f"numpy=={numpy.__version__}")
+    except:
+        pass
+    
+    try:
+        import pandas
+        deps.append(f"pandas=={pandas.__version__}")
+    except:
+        pass
+    
     return jsonify({
         "status": "operational",
+        "mode": "demo" if not HAS_DEPENDENCIES else "full",
         "python_version": python_version,
-        "dependencies_loaded": HAS_DEPENDENCIES,
+        "dependencies_loaded": deps,
+        "error": ERROR_MESSAGE,
         "environment": os.environ.get("VERCEL_ENV", "development")
     })
 
