@@ -6,13 +6,13 @@ from cyberbot import CyberBot
 
 app = Flask(__name__, template_folder='templates')
 
-# Initialize CyberBot with direct API key
+# Initialize CyberBot with better error handling
 try:
-    # You can replace this with your actual API key if needed
-    api_key = "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"
+    # Try to get API key from environment
+    api_key = os.environ.get("GROQ_API_KEY", "YOUR_API_KEY_HERE")
     cyberbot = CyberBot(api_key=api_key)
     app.logger.info("CyberBot initialized successfully with provided API key.")
-except ValueError as e:
+except Exception as e:
     cyberbot = None
     app.logger.warning(f"CyberBot initialization failed: {str(e)}")
 
