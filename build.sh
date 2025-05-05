@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Ensure we have the latest pip
+python -m pip install --upgrade pip setuptools wheel
+
+# Install requirements
+pip install -r requirements.txt
+
 # Install only the basic dependencies needed for the demo to run
 pip install flask==2.2.3 werkzeug==2.2.3 numpy==1.23.5 pandas==1.5.3 Pillow==9.4.0 matplotlib==3.7.0
 
