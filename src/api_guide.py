@@ -36,6 +36,40 @@ ATTACK_TYPES = {
     4: "u2r"                    # Unauthorized access to root privileges
 }
 
+# Add CyberBot documentation to the API guide
+CYBERBOT_DOCS = """
+## CyberBot API
+
+### Chat with CyberBot
+- **URL**: `/api/chat`
+- **Method**: `POST`
+- **Description**: Interact with CyberBot, a cybersecurity-focused chatbot powered by Groq LLM
+- **Request Body**:
+  ```json
+  {
+    "query": "What is a zero-day vulnerability?",
+    "model": "llama3-70b-8192",  // Optional: Specify model
+    "clear_history": false       // Optional: Clear conversation history
+  }
+  ```
+- **Success Response**:
+  ```json
+  {
+    "status": "success",
+    "query": "What is a zero-day vulnerability?",
+    "response": "A zero-day vulnerability refers to a security flaw in software or hardware that is unknown to the vendor and has not yet been patched. These vulnerabilities are particularly dangerous because there are no available fixes or patches when they are discovered and exploited by attackers. The term 'zero-day' comes from the fact that developers have had zero days to address and patch the vulnerability. When exploited, these vulnerabilities can lead to serious security breaches before the affected vendor even becomes aware of the issue."
+  }
+  ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Error message here"
+  }
+  ```
+- **Required Environment Variables**: `GROQ_API_KEY`
+"""
+
 def get_api_status():
     """Check if the API is running"""
     try:
@@ -156,6 +190,10 @@ def interactive_demo():
             break
     
     print("\nThank you for using the Cybersecurity Threat Detection System!")
+
+def get_full_documentation():
+    """Return the complete API documentation."""
+    return f"{MALWARE_DOCS}\n\n{YARA_DOCS}\n\n{MEMORY_DOCS}\n\n{STEG_DOCS}\n\n{THREAT_DOCS}\n\n{STATUS_DOCS}\n\n{CYBERBOT_DOCS}"
 
 if __name__ == "__main__":
     interactive_demo() 

@@ -1,0 +1,12 @@
+.ipynb_checkpoints
+__pycache__
+venv
+.git
+models/threat_detector_rf.pkl
+data/KDDTrain+Multi.csv
+data/KDDTrain+.txt
+data/KDDTrain+.arff
+data/KDDTest+.txt
+data/KDDTest+.arff
+data/KDDTest-21.txt
+data/KDDTest-21.arff 

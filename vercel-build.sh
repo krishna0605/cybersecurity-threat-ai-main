@@ -16,4 +16,16 @@ if [ -d "templates" ]; then
   cp -r templates/* .vercel/src/templates/
 fi
 
+# Create necessary directories for the application
+echo "Creating necessary directories..."
+mkdir -p .vercel/src/yara_rules
+mkdir -p .vercel/temp_uploads
+
+# Create static directory if it exists
+if [ -d "src/static" ]; then
+  echo "Copying static files..."
+  mkdir -p .vercel/src/static
+  cp -r src/static/* .vercel/src/static/
+fi
+
 echo "Build completed" 

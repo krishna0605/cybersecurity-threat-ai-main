@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberBot - Cybersecurity Assistant</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+        }
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #d1ecf1;
+            margin-left: 20%;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #e2e3e5;
+            margin-right: 20%;
+        }
+        .system-message {
+            background-color: #f8d7da;
+            text-align: center;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="/">Cybersecurity Threat AI</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/malware-scan">Malware Scan</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/steganalysis">Steganalysis</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/threat-detection">Threat Detection</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active fw-bold" href="/chat" style="color: #fff !important;">💬 CyberBot Chat</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/documentation">API Docs</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="chat-container mt-4">
+            <h2 class="mb-4">CyberBot - Cybersecurity Assistant</h2>
+            <p class="lead">Ask questions about cybersecurity threats, vulnerabilities, best practices, and more.</p>
+
+            <div class="chat-box" id="chatBox">
+                <div class="chat-message bot-message">
+                    Hello! I'm CyberBot, your cybersecurity assistant. How can I help you today?
+                </div>
+
+                {% if error %}
+                <div class="chat-message system-message">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                {% if request.form.get('query') %}
+                <div class="chat-message user-message">
+                    {{ request.form.get('query') }}
+                </div>
+                {% endif %}
+
+                {% if response %}
+                <div class="chat-message bot-message">
+                    {{ response | safe }}
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="post" action="/chat">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="query" placeholder="Type your cybersecurity question..." required>
+                    <button class="btn btn-primary" type="submit">Send</button>
+                </div>
+            </form>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Example Questions</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>What is a zero-day vulnerability?</li>
+                        <li>How can I protect my organization from ransomware?</li>
+                        <li>What are the latest phishing techniques?</li>
+                        <li>Explain the OWASP Top 10 vulnerabilities</li>
+                        <li>How do I detect malware on my network?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-scroll to the bottom of the chat box
+        document.addEventListener('DOMContentLoaded', function() {
+            var chatBox = document.getElementById('chatBox');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+</body>
+</html> 

@@ -237,6 +237,51 @@ def configure_routes(flask_app):
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
+    @flask_app.route('/api/chat', methods=['POST'])
+    def chat_api():
+        """API endpoint for CyberBot chat interactions."""
+        
+        from app import cyberbot
+        
+        if cyberbot is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'CyberBot is not available. Please set the GROQ_API_KEY environment variable.'
+            }), 503
+        
+        data = request.get_json()
+        
+        # Validate input
+        if not data or 'query' not in data:
+            return jsonify({
+                'status': 'error',
+                'message': 'Query parameter is required'
+            }), 400
+        
+        query = data['query']
+        
+        # Get model parameter if provided
+        if 'model' in data and data['model']:
+            cyberbot.set_model(data['model'])
+        
+        # Clear conversation if requested
+        if data.get('clear_history', False):
+            cyberbot.clear_conversation()
+        
+        # Get response from CyberBot
+        try:
+            response = cyberbot.get_security_response(query)
+            return jsonify({
+                'status': 'success',
+                'query': query,
+                'response': response
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'Error processing query: {str(e)}'
+            }), 500
+    
     # Return reference to the app for chaining
     return flask_app
 
